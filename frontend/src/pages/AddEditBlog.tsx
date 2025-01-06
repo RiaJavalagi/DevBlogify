@@ -3,8 +3,9 @@ import { Button, TextField, Typography, Paper, Box } from "@mui/material";
 import { addBlog, fetchBlogById, updateBlog } from "../api/blogService";
 import { useNavigate, useParams } from "react-router-dom";
 import Notification from "../components/Notification";
-import LoadingBar from "../components/LoadingBar";
 import { validateForm } from "../utils/validateForm";
+import AddEditBlogSkeleton from "../components/Skeletons/AddEditBlogSkeleton";
+import NoBlogsFound from "../components/NoBlogsFound";
 
 const AddEditBlog: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -38,14 +39,18 @@ const AddEditBlog: React.FC = () => {
             content: fetchedBlog.content,
             tags: fetchedBlog.tags,
           });
-        } catch (err) {
-          console.error("Error fetching blog:", err);
-          setNotification({ type: "error", message: "Error fetching blog:" });
+        } catch (err: any) {
+          setNotification({
+            type: "error",
+            message: "Error fetching blog: " + err.message,
+          });
         } finally {
           setLoading(false);
         }
       };
       fetchBlog();
+    } else {
+      setNotification(null);
     }
   }, [id]);
 
@@ -53,8 +58,8 @@ const AddEditBlog: React.FC = () => {
     e.preventDefault();
     const newErrors = validateForm(formData);
     setErrors(newErrors);
-    const isValid = Object.values(newErrors).every(error => error === "")
-    
+    const isValid = Object.values(newErrors).every((error) => error === "");
+
     if (isValid) {
       try {
         setSubmitting(true);
@@ -91,8 +96,7 @@ const AddEditBlog: React.FC = () => {
     } else {
       setNotification({
         type: "error",
-        message:
-          "Some required fields are missing or invalid.",
+        message: "Some required fields are missing or invalid.",
       });
     }
   };
@@ -103,7 +107,16 @@ const AddEditBlog: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingBar />;
+    return <AddEditBlogSkeleton />;
+  }
+
+  if (id && !formData.title) {
+    return (
+      <>
+        <NoBlogsFound message="No blog found to edit!" />
+        {notification && <Notification notification={notification} />}
+      </>
+    );
   }
 
   return (
@@ -168,7 +181,7 @@ const AddEditBlog: React.FC = () => {
           <TextField
             label="Blog Title *"
             variant="outlined"
-            aria-label= "Blog Title"
+            aria-label="Blog Title"
             fullWidth
             value={formData.title}
             onChange={(e) =>
@@ -182,7 +195,7 @@ const AddEditBlog: React.FC = () => {
           <TextField
             label="Blog Content *"
             variant="outlined"
-            aria-label= "Blog Content"
+            aria-label="Blog Content"
             fullWidth
             value={formData.content}
             onChange={(e) =>
@@ -198,7 +211,7 @@ const AddEditBlog: React.FC = () => {
           <TextField
             label="Tags (comma separated) *"
             variant="outlined"
-            aria-label= "Blog Tags"
+            aria-label="Blog Tags"
             fullWidth
             value={formData.tags}
             onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
@@ -209,7 +222,7 @@ const AddEditBlog: React.FC = () => {
           <Button
             variant="contained"
             type="submit"
-            aria-label= "Submit Blog"
+            aria-label="Submit Blog"
             fullWidth
             disabled={submitting}
             sx={{
