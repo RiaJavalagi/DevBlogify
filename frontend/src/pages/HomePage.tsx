@@ -1,63 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { fetchBlogs } from "../api/blogService";
+import React, { useState } from "react";
 import SearchBar from "../components/SearchBar";
 import BlogList from "../components/BlogList";
-import { Blog } from "../interfaces/blogTypes";
 import ServerError from "../components/ServerError";
 import NoBlogsFound from "../components/NoBlogsFound";
 import { Box } from "@mui/material";
 import BlogCardSkeleton from "../components/Skeletons/BlogCardSkeleton";
 import SearchBarSkeleton from "../components/Skeletons/SearchBarSkeleton";
+import useBlogs from "../hooks/useBlogs";
+import useFilteredBlogs from "../hooks/useFilteredBlogs";
 
 const HomePage: React.FC = () => {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const handleResetFilter = () => {
-    setFilteredBlogs(blogs);
-    setSearchQuery("");
-  };
-
-  useEffect(() => {
-    const loadBlogs = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchBlogs();
-
-        // Ensure tags are arrays
-        const formattedData = data.map((blog: { tags: any }) => ({
-          ...blog,
-          tags: Array.isArray(blog.tags)
-            ? blog.tags
-            : (blog.tags || "").split(",").map((tag: string) => tag.trim()),
-        }));
-
-        setBlogs(formattedData);
-        setFilteredBlogs(formattedData);
-      } catch (err) {
-        setError("Network error! Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadBlogs();
-  }, []);
-
+  const { blogs, loading, error } = useBlogs();
+  const filteredBlogs = useFilteredBlogs(blogs, searchQuery);
   const uniqueTags = Array.from(new Set(blogs.flatMap((blog) => blog.tags)));
-
-  useEffect(() => {
-    const filtered = blogs.filter(
-      (blog) =>
-        blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        blog.tags.some((tag) =>
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
-    setFilteredBlogs(filtered);
-  }, [searchQuery, blogs]);
 
   if (error) return <ServerError errorMessage={error} />;
 
@@ -92,7 +48,7 @@ const HomePage: React.FC = () => {
       ) : (
         <NoBlogsFound
           message="No blogs match your search criteria."
-          onResetFilter={handleResetFilter}
+          onResetFilter={() => {setSearchQuery("")}}
         />
       )}
     </>

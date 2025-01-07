@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Typography, Box, Button, Chip } from "@mui/material";
 import Notification from "../components/Notification";
 import { Dialog } from "@progress/kendo-react-dialogs";
-import { fetchBlogById, deleteBlog } from "../api/blogService";
-import { Blog } from "../interfaces/blogTypes";
+import { deleteBlog } from "../api/blogService";
 import ShareButton from "../components/ShareButtons";
 import NoBlogsFound from "../components/NoBlogsFound";
 import BlogDetailsSkeleton from "../components/Skeletons/BlogDetailsSkeleton";
@@ -14,45 +13,17 @@ import {
   CardFooter,
   CardHeader,
 } from "@progress/kendo-react-layout";
+import useBlogDetails from "../hooks/useBlogDetails";
 
 const BlogDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  const [blog, setBlog] = useState<Blog | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { blog, loading, error } = useBlogDetails(id || "");
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
-
-  useEffect(() => {
-    const fetchBlog = async () => {
-      try {
-        const fetchedBlog = await fetchBlogById(id || "");
-        const formattedFetchedBlog = {
-          ...fetchedBlog,
-          tags: Array.isArray(fetchedBlog.tags)
-            ? fetchedBlog.tags
-            : (fetchedBlog.tags || "")
-                .split(",")
-                .map((tag: string) => tag.trim()),
-        };
-        setBlog(formattedFetchedBlog);
-      } catch (error) {
-        console.error("Error fetching blog:", error);
-        setNotification({
-          type: "error",
-          message: "Failed to load blog details.",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBlog();
-  }, [id]);
 
   const handleDelete = async () => {
     try {
@@ -76,6 +47,22 @@ const BlogDetailsPage: React.FC = () => {
     navigate(`/edit-blog/${id}`);
   };
 
+  if (error && !notification) {
+    setNotification({
+      type: "error",
+      message: error,
+    });
+  }
+
+  if (error) {
+    return (
+      <>
+        <Notification notification={notification} />
+        <NoBlogsFound message="Failed to load blog details." />;
+      </>
+    );
+  }
+  
   if (loading) {
     return <BlogDetailsSkeleton />;
   }
@@ -110,10 +97,7 @@ const BlogDetailsPage: React.FC = () => {
           >
             {blog.title}
           </Typography>
-          <Typography
-            color="textSecondary"
-            style={{ fontWeight: "bold" }}
-          >
+          <Typography color="textSecondary" style={{ fontWeight: "bold" }}>
             Posted on: {new Date(blog.timestamp).toLocaleDateString()} at{" "}
             {new Date(blog.timestamp).toLocaleTimeString()}
           </Typography>

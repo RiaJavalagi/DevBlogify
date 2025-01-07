@@ -19,7 +19,7 @@ const NoBlogsFound: React.FC<NoBlogsFoundProps> = ({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "80vh",
+        minHeight: "50vh",
         textAlign: "center",
         background: "linear-gradient(to bottom, #e3f2fd, #e0f7fa)",
         gap: "1rem",
