@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "https://devblogify-backend.onrender.com";
+const API_URL = "https://devblogify-fb02.onrender.com";
 
 //Fetch All Blogs
 export const fetchBlogs = async() => {
@@ -13,16 +13,16 @@ export const fetchBlogs = async() => {
     }
 };
 
-//Fetch Single Blogs by ID
+//Fetch Single Blog by ID
 export const fetchBlogById = async (id : string) => {
     try {
         const reponse = await axios.get(`${API_URL}/blogs/${id}`);
         return reponse.data;
     } catch (error) {
-        console.error(`Error fecthing blog with ID ${id}:`, error);
+        console.error(`Error fetching blog with ID ${id}:`, error);
         throw error; 
     }
-}
+};
 
 //Add a new blog
 export const addBlog = async (blogData: { title: string; content: string; tags: string}) => {
@@ -33,9 +33,9 @@ export const addBlog = async (blogData: { title: string; content: string; tags: 
         console.error("Error adding blog: ", error);
         throw error;
     }
-}
+};
 
-//Update an existing blog
+//Update a blog
 export const updateBlog = async (id: string, blogData: { title: string; content: string; tags: string}) => {
     try {
         const response = await axios.put(`${API_URL}/blogs/${id}`, blogData);
@@ -44,7 +44,7 @@ export const updateBlog = async (id: string, blogData: { title: string; content:
         console.error(`Error updating blog with ID ${id}: `, error);
         throw error;
     }
-}
+};
 
 //Delete a blog
 export const deleteBlog = async (id: string) => {
@@ -55,4 +55,4 @@ export const deleteBlog = async (id: string) => {
         console.error(`Error deleting blog with ID ${id}: `, error);
         throw error;
     }
-}
+};
